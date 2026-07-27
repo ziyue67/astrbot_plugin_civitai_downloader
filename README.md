@@ -14,4 +14,4 @@
 
 将本目录放入 AstrBot 的 `data/plugins/` 目录，或在插件管理页面从 GitHub 仓库安装。重载插件后即可使用。
 
-视频直链即使 URL 扩展名是 `.webm`，Civitai 也可能实际返回 MP4；插件会按响应的媒体类型保存并回传。
+视频直链即使 URL 扩展名是 `.webm`，Civitai 也可能实际返回 MP4；插件会按响应的媒体类型识别，并将 HTTPS 视频地址交给 OneBot/NapCat 下载，避免 Docker 容器之间无法访问临时文件。

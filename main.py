@@ -63,7 +63,7 @@ def _extension(url: str, content_type: str | None) -> str:
     return ".bin"
 
 
-def _download_sync(url: str, target_dir: Path) -> tuple[Path, str]:
+def _download_sync(url: str, target_dir: Path) -> tuple[Path, str, str]:
     """Download one allowed media URL without loading its body into memory."""
     request = urllib.request.Request(
         url,
@@ -91,14 +91,14 @@ def _download_sync(url: str, target_dir: Path) -> tuple[Path, str]:
                         destination.unlink(missing_ok=True)
                         raise DownloadError("文件超过 150 MB 下载上限。")
                     output.write(chunk)
-            return destination, content_type
+            return destination, content_type, final_url
     except DownloadError:
         raise
     except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, ValueError) as exc:
         raise DownloadError(f"下载失败：{exc}") from exc
 
 
-@star.register("astrbot_plugin_civitai_downloader", "jun23", "下载 Civitai 图片和视频链接", "1.0.1")
+@star.register("astrbot_plugin_civitai_downloader", "jun23", "下载 Civitai 图片和视频链接", "1.0.2")
 class CivitaiDownloaderPlugin(star.Star):
     """Download media from Civitai CDN and send it back as a media message."""
 
@@ -110,13 +110,21 @@ class CivitaiDownloaderPlugin(star.Star):
     async def _handle_url(self, event: AstrMessageEvent, raw_url: str) -> None:
         try:
             url = _validate_url(raw_url)
-            path, content_type = await asyncio.to_thread(_download_sync, url, self.download_dir)
+            path, content_type, final_url = await asyncio.to_thread(
+                _download_sync, url, self.download_dir
+            )
         except DownloadError as exc:
             event.set_result(event.plain_result(str(exc)))
             return
 
         is_video = path.suffix.lower() in VIDEO_SUFFIXES or content_type.startswith("video/")
-        component = Video.fromFileSystem(path) if is_video else Image.fromFileSystem(path)
+        if is_video:
+            # OneBot/NapCat commonly runs in a different container from AstrBot.
+            # It cannot read AstrBot's /tmp path, but it can fetch the HTTPS URL itself.
+            component = Video.fromURL(final_url)
+            path.unlink(missing_ok=True)
+        else:
+            component = Image.fromFileSystem(path)
         event.set_result(event.chain_result([component]))
 
     @filter.command("civitai下载")
