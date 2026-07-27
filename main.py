@@ -18,8 +18,7 @@ from astrbot.api.event import AstrMessageEvent, filter
 from astrbot.api.message_components import Image, Video
 
 
-URL_PATTERN = re.compile(r"https?://[^\s<>\"']+", re.IGNORECASE)
-ALLOWED_HOSTS = {"image.civitai.com", "civitai.red"}
+URL_PATTERN = re.compile(r"https?://[^\s<>\"'`]+", re.IGNORECASE)
 IMAGE_SUFFIXES = {".avif", ".bmp", ".gif", ".jpeg", ".jpg", ".png", ".webp"}
 VIDEO_SUFFIXES = {".m4v", ".mkv", ".mov", ".mp4", ".webm"}
 MAX_DOWNLOAD_BYTES = 150 * 1024 * 1024
@@ -30,11 +29,24 @@ class DownloadError(Exception):
     """A download error that can be shown to the chat user."""
 
 
+def _extract_url(raw_value: str) -> str:
+    """Extract a URL from command arguments or a formatted chat message."""
+    value = urllib.parse.unquote(raw_value.strip())
+    match = URL_PATTERN.search(value)
+    if not match:
+        raise DownloadError("消息中没有可下载的 HTTPS 链接。")
+    return match.group(0).rstrip(".,;:!?)]}，。；：！？")
+
+
+def _is_civitai_host(hostname: str | None) -> bool:
+    return bool(hostname) and (hostname == "civitai.red" or hostname.endswith(".civitai.com"))
+
+
 def _validate_url(raw_url: str) -> str:
-    url = raw_url.rstrip(".,;:!?)]}，。；：！？")
+    url = _extract_url(raw_url)
     parsed = urllib.parse.urlparse(url)
-    if parsed.scheme != "https" or parsed.hostname not in ALLOWED_HOSTS:
-        raise DownloadError("仅支持 image.civitai.com 和 civitai.red 的 HTTPS 媒体链接。")
+    if parsed.scheme != "https" or not _is_civitai_host(parsed.hostname):
+        raise DownloadError("仅支持 Civitai 的 HTTPS 媒体链接。")
     if parsed.username or parsed.password:
         raise DownloadError("链接格式无效。")
     return url
