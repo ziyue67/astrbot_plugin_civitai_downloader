@@ -1,5 +1,7 @@
-name: astrbot_plugin_civitai_downloader
-desc: 下载并回传 Civitai 图片和视频直链
-version: 1.0.0
-author: jun23
-repo: https://github.com/jun23/astrbot_plugin_civitai_downloader
+name: "astrbot_plugin_civitai_downloader"
+desc: "Download and return Civitai image and video URLs."
+short_desc: "Civitai image and video downloader"
+version: "1.0.1"
+author: "jun23"
+repo: "https://github.com/ziyue67/astrbot_plugin_civitai_downloader"
+astrbot_version: ">=4.0.0"
