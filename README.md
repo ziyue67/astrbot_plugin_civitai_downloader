@@ -1,6 +1,6 @@
 # AstrBot Civitai 下载器
 
-发送 `image.civitai.com` 或 `civitai.red` 的图片、视频直链，插件会下载后以媒体消息回传。
+发送 `image.civitai.com` 或 `civitai.red` 的图片、视频直链，插件会下载后以媒体消息回传。链接中 Civitai 的 `width=450`、`optimized=true` 等预览处理参数会自动移除，图片优先下载原图。
 
 也可使用命令：
 

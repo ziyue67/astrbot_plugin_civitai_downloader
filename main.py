@@ -52,6 +52,26 @@ def _validate_url(raw_url: str) -> str:
     return url
 
 
+def _original_media_url(url: str) -> str:
+    """Remove Civitai CDN transform segments such as width=450."""
+    parsed = urllib.parse.urlsplit(url)
+    decoded_path = urllib.parse.unquote(parsed.path).lower()
+    # Signed original URLs use original=true plus query parameters such as sig/exp.
+    # Their transform segment and query string must be kept byte-for-byte.
+    if "original=true" in decoded_path:
+        return url
+    transform_keys = ("anim=", "optimized=", "transcode=", "width=", "height=")
+    segments = parsed.path.split("/")
+    clean_path = "/".join(
+        segment
+        for segment in segments
+        if not any(key in urllib.parse.unquote(segment).lower() for key in transform_keys)
+    )
+    return urllib.parse.urlunsplit(
+        (parsed.scheme, parsed.netloc, clean_path, parsed.query, parsed.fragment)
+    )
+
+
 def _extension(url: str, content_type: str | None) -> str:
     if content_type:
         detected = mimetypes.guess_extension(content_type.split(";", 1)[0].strip())
@@ -98,7 +118,7 @@ def _download_sync(url: str, target_dir: Path) -> tuple[Path, str, str]:
         raise DownloadError(f"下载失败：{exc}") from exc
 
 
-@star.register("astrbot_plugin_civitai_downloader", "jun23", "下载 Civitai 图片和视频链接", "v1.0.3")
+@star.register("astrbot_plugin_civitai_downloader", "jun23", "下载 Civitai 图片和视频链接", "v1.0.4")
 class CivitaiDownloaderPlugin(star.Star):
     """Download media from Civitai CDN and send it back as a media message."""
 
@@ -110,6 +130,7 @@ class CivitaiDownloaderPlugin(star.Star):
     async def _handle_url(self, event: AstrMessageEvent, raw_url: str) -> None:
         try:
             url = _validate_url(raw_url)
+            url = _original_media_url(url)
             path, content_type, final_url = await asyncio.to_thread(
                 _download_sync, url, self.download_dir
             )
