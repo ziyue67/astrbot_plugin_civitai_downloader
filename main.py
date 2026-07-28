@@ -118,7 +118,7 @@ def _download_sync(url: str, target_dir: Path) -> tuple[Path, str, str]:
         raise DownloadError(f"下载失败：{exc}") from exc
 
 
-@star.register("astrbot_plugin_civitai_downloader", "jun23", "下载 Civitai 图片和视频链接", "v1.0.5")
+@star.register("astrbot_plugin_civitai_downloader", "jun23", "下载 Civitai 图片和视频链接", "v1.0.6")
 class CivitaiDownloaderPlugin(star.Star):
     """Download media from Civitai CDN and send it back as a media message."""
 
