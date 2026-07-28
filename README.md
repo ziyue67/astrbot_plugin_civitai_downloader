@@ -10,6 +10,8 @@
 
 支持 `jpg`、`jpeg`、`png`、`webp`、`gif`、`avif`、`webm`、`mp4`、`mov`、`mkv`、`m4v`。单个文件最大 150 MB，下载超时为 90 秒。
 
+`image-b2.civitai.com/.../original` 是原始缓存文件，常为数 MB 的 PNG。发送到 OneBot 时 AstrBot 会将图片转换为 Base64，因此耗时会显著高于 `width=450` 预览图。
+
 ## 安装
 
 将本目录放入 AstrBot 的 `data/plugins/` 目录，或在插件管理页面从 GitHub 仓库安装。重载插件后即可使用。

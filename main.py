@@ -118,7 +118,7 @@ def _download_sync(url: str, target_dir: Path) -> tuple[Path, str, str]:
         raise DownloadError(f"下载失败：{exc}") from exc
 
 
-@star.register("astrbot_plugin_civitai_downloader", "jun23", "下载 Civitai 图片和视频链接", "v1.0.4")
+@star.register("astrbot_plugin_civitai_downloader", "jun23", "下载 Civitai 图片和视频链接", "v1.0.5")
 class CivitaiDownloaderPlugin(star.Star):
     """Download media from Civitai CDN and send it back as a media message."""
 
@@ -153,7 +153,7 @@ class CivitaiDownloaderPlugin(star.Star):
         """下载 Civitai 媒体：/civitai下载 <URL>。"""
         await self._handle_url(event, url)
 
-    @filter.regex(r"https://(?:image\.civitai\.com|civitai\.red)/\S+", priority=100)
+    @filter.regex(r"https://(?:[a-z0-9-]+\.civitai\.com|civitai\.red)/\S+", priority=100)
     async def download_from_message(self, event: AstrMessageEvent) -> None:
         """自动下载消息中的第一个 Civitai 媒体链接。"""
         message = event.message_str
